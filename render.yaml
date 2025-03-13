@@ -3,7 +3,8 @@ services:
     name: ukraine-experts-api
     runtime: docker
     repo: https://github.com/Annomy111/UKR_Expert_DB.git
-    dockerfilePath: ./Dockerfile
+    rootDir: ukraine-experts-db
+    dockerfilePath: ./src/Dockerfile
     envVars:
       - key: PORT
         value: 8000
