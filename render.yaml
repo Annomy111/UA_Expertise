@@ -27,8 +27,5 @@ services:
       - key: NODE_ENV
         value: production
       - key: NEXT_PUBLIC_API_URL
-        fromService:
-          name: ukraine-experts-api
-          type: web
-          property: url
+        value: "https://${ukraine-experts-api.host}"
     autoDeploy: false 
