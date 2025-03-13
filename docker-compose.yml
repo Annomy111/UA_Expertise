@@ -1,0 +1,81 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    container_name: ukraine_experts_db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    ports:
+      - "${DB_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - ukraine_experts_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: ukraine_experts_pgadmin
+    restart: unless-stopped
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+    networks:
+      - ukraine_experts_network
+
+  api:
+    build:
+      context: ./ukraine-experts-db
+      dockerfile: src/Dockerfile
+    image: uaexpertsdatabase-api:latest
+    container_name: ukraine_experts_api
+    restart: unless-stopped
+    environment:
+      - DB_USER=${POSTGRES_USER}
+      - DB_PASSWORD=${POSTGRES_PASSWORD}
+      - DB_HOST=ukraine_experts_db
+      - DB_PORT=5432
+      - DB_NAME=${POSTGRES_DB}
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - ukraine_experts_network
+
+  ui:
+    build:
+      context: ./ukraine-experts-ui
+      dockerfile: Dockerfile
+    image: uaexpertsdatabase-ui:latest
+    container_name: ukraine_experts_ui
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://ukraine_experts_api:8000
+    networks:
+      - ukraine_experts_network
+    depends_on:
+      - api
+
+networks:
+  ukraine_experts_network:
+    name: ukraine_experts_network
+
+volumes:
+  postgres_data:
+    name: ukraine_experts_postgres_data 

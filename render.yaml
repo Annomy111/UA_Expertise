@@ -1,0 +1,34 @@
+services:
+  - type: web
+    name: ukraine-experts-api
+    runtime: docker
+    repo: https://github.com/Annomy111/UKR_Expert_DB.git
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: PORT
+        value: 8000
+      - key: PYTHONUNBUFFERED
+        value: "true"
+      - key: MAX_WORKERS
+        value: 1
+      - key: DATABASE_PATH
+        value: /app/experts.db
+    healthCheckPath: /health
+    
+  - type: web
+    name: ukraine-experts-ui
+    runtime: node
+    buildCommand: cd ukraine-experts-ui && npm install && npm run build
+    startCommand: cd ukraine-experts-ui && npm start
+    repo: https://github.com/Annomy111/UKR_Expert_DB.git
+    envVars:
+      - key: PORT
+        value: 3000
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_API_URL
+        fromService:
+          name: ukraine-experts-api
+          type: web
+          property: url
+    autoDeploy: false 

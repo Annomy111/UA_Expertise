@@ -1,0 +1,691 @@
+{
+    "openapi": "3.0.2",
+    "info": {
+        "title": "Ukraine Experts Database API",
+        "description": "API for accessing and managing the database of Ukrainian experts and organizations in Europe",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/": {
+            "get": {
+                "summary": "Read Root",
+                "operationId": "read_root__get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/cities": {
+            "get": {
+                "summary": "Get Cities",
+                "description": "Get all cities in the database.",
+                "operationId": "get_cities_cities_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "title": "Response Get Cities Cities Get",
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/City"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/experts/city/{city_id}": {
+            "get": {
+                "summary": "Get Experts By City",
+                "description": "Get all experts for a specific city.",
+                "operationId": "get_experts_by_city_experts_city__city_id__get",
+                "parameters": [
+                    {
+                        "description": "The ID of the city",
+                        "required": true,
+                        "schema": {
+                            "title": "City Id",
+                            "type": "integer",
+                            "description": "The ID of the city"
+                        },
+                        "name": "city_id",
+                        "in": "path"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/organizations": {
+            "get": {
+                "summary": "Get Organizations",
+                "description": "Get organizations with their key figures, optionally filtered by city.",
+                "operationId": "get_organizations_organizations_get",
+                "parameters": [
+                    {
+                        "description": "Filter by city ID",
+                        "required": false,
+                        "schema": {
+                            "title": "City Id",
+                            "type": "integer",
+                            "description": "Filter by city ID"
+                        },
+                        "name": "city_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/experts/{expert_id}": {
+            "get": {
+                "summary": "Get Expert Details",
+                "description": "Get detailed information about an expert or organization.",
+                "operationId": "get_expert_details_experts__expert_id__get",
+                "parameters": [
+                    {
+                        "description": "The ID of the expert",
+                        "required": true,
+                        "schema": {
+                            "title": "Expert Id",
+                            "type": "string",
+                            "description": "The ID of the expert"
+                        },
+                        "name": "expert_id",
+                        "in": "path"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "summary": "Update Expert",
+                "description": "Update an existing expert or organization.",
+                "operationId": "update_expert_experts__expert_id__put",
+                "parameters": [
+                    {
+                        "description": "The ID of the expert to update",
+                        "required": true,
+                        "schema": {
+                            "title": "Expert Id",
+                            "type": "string",
+                            "description": "The ID of the expert to update"
+                        },
+                        "name": "expert_id",
+                        "in": "path"
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ExpertUpdate"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Delete Expert",
+                "description": "Delete an expert or organization.",
+                "operationId": "delete_expert_experts__expert_id__delete",
+                "parameters": [
+                    {
+                        "description": "The ID of the expert to delete",
+                        "required": true,
+                        "schema": {
+                            "title": "Expert Id",
+                            "type": "string",
+                            "description": "The ID of the expert to delete"
+                        },
+                        "name": "expert_id",
+                        "in": "path"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/search": {
+            "get": {
+                "summary": "Search Experts",
+                "description": "Search for experts by name, description, or tags.",
+                "operationId": "search_experts_search_get",
+                "parameters": [
+                    {
+                        "description": "Search term",
+                        "required": true,
+                        "schema": {
+                            "title": "Q",
+                            "type": "string",
+                            "description": "Search term"
+                        },
+                        "name": "q",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/experts/focus/{focus_area}": {
+            "get": {
+                "summary": "Get Experts By Focus",
+                "description": "Get experts by focus area.",
+                "operationId": "get_experts_by_focus_experts_focus__focus_area__get",
+                "parameters": [
+                    {
+                        "description": "The focus area to filter by",
+                        "required": true,
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/components/schemas/FocusArea"
+                                }
+                            ],
+                            "description": "The focus area to filter by"
+                        },
+                        "name": "focus_area",
+                        "in": "path"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/diaspora/organizations": {
+            "get": {
+                "summary": "Get Diaspora Organizations",
+                "description": "Get all diaspora organizations.",
+                "operationId": "get_diaspora_organizations_diaspora_organizations_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/experts": {
+            "post": {
+                "summary": "Create Expert",
+                "description": "Add a new expert or organization to the database.",
+                "operationId": "create_expert_experts_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ExpertCreate"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/statistics": {
+            "get": {
+                "summary": "Get Statistics",
+                "description": "Get database statistics.",
+                "operationId": "get_statistics_statistics_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "City": {
+                "title": "City",
+                "required": [
+                    "id",
+                    "name",
+                    "country"
+                ],
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "title": "Id",
+                        "type": "integer"
+                    },
+                    "name": {
+                        "title": "Name",
+                        "type": "string"
+                    },
+                    "country": {
+                        "title": "Country",
+                        "type": "string"
+                    },
+                    "description": {
+                        "title": "Description",
+                        "type": "string"
+                    }
+                }
+            },
+            "Contact": {
+                "title": "Contact",
+                "required": [
+                    "type",
+                    "value"
+                ],
+                "type": "object",
+                "properties": {
+                    "type": {
+                        "title": "Type",
+                        "type": "string"
+                    },
+                    "value": {
+                        "title": "Value",
+                        "type": "string"
+                    },
+                    "is_primary": {
+                        "title": "Is Primary",
+                        "type": "boolean",
+                        "default": false
+                    }
+                }
+            },
+            "ExpertCreate": {
+                "title": "ExpertCreate",
+                "required": [
+                    "name",
+                    "type",
+                    "city_id"
+                ],
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "title": "Name",
+                        "type": "string"
+                    },
+                    "type": {
+                        "$ref": "#/components/schemas/ExpertType"
+                    },
+                    "title": {
+                        "title": "Title",
+                        "type": "string"
+                    },
+                    "affiliation": {
+                        "title": "Affiliation",
+                        "type": "string"
+                    },
+                    "city_id": {
+                        "title": "City Id",
+                        "type": "integer"
+                    },
+                    "description": {
+                        "title": "Description",
+                        "type": "string"
+                    },
+                    "founding_year": {
+                        "title": "Founding Year",
+                        "type": "integer"
+                    },
+                    "is_diaspora": {
+                        "title": "Is Diaspora",
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "focus_areas": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/FocusArea"
+                        },
+                        "default": []
+                    },
+                    "contacts": {
+                        "title": "Contacts",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Contact"
+                        },
+                        "default": []
+                    },
+                    "key_figures": {
+                        "title": "Key Figures",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/KeyFigure"
+                        },
+                        "default": []
+                    },
+                    "tags": {
+                        "title": "Tags",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "default": []
+                    }
+                }
+            },
+            "ExpertType": {
+                "title": "ExpertType",
+                "enum": [
+                    "individual",
+                    "organization"
+                ],
+                "type": "string",
+                "description": "An enumeration."
+            },
+            "ExpertUpdate": {
+                "title": "ExpertUpdate",
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "title": "Name",
+                        "type": "string"
+                    },
+                    "title": {
+                        "title": "Title",
+                        "type": "string"
+                    },
+                    "affiliation": {
+                        "title": "Affiliation",
+                        "type": "string"
+                    },
+                    "city_id": {
+                        "title": "City Id",
+                        "type": "integer"
+                    },
+                    "description": {
+                        "title": "Description",
+                        "type": "string"
+                    },
+                    "founding_year": {
+                        "title": "Founding Year",
+                        "type": "integer"
+                    },
+                    "is_diaspora": {
+                        "title": "Is Diaspora",
+                        "type": "boolean"
+                    },
+                    "focus_areas": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/FocusArea"
+                        }
+                    },
+                    "contacts": {
+                        "title": "Contacts",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Contact"
+                        }
+                    },
+                    "key_figures": {
+                        "title": "Key Figures",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/KeyFigure"
+                        }
+                    },
+                    "tags": {
+                        "title": "Tags",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "FocusArea": {
+                "title": "FocusArea",
+                "enum": [
+                    "advocacy",
+                    "humanitarian",
+                    "cultural_diplomacy",
+                    "political_mobilization",
+                    "research",
+                    "policy_analysis",
+                    "community_support",
+                    "integration",
+                    "education",
+                    "media"
+                ],
+                "type": "string",
+                "description": "An enumeration."
+            },
+            "HTTPValidationError": {
+                "title": "HTTPValidationError",
+                "type": "object",
+                "properties": {
+                    "detail": {
+                        "title": "Detail",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ValidationError"
+                        }
+                    }
+                }
+            },
+            "KeyFigure": {
+                "title": "KeyFigure",
+                "required": [
+                    "name"
+                ],
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "title": "Name",
+                        "type": "string"
+                    },
+                    "role": {
+                        "title": "Role",
+                        "type": "string"
+                    },
+                    "description": {
+                        "title": "Description",
+                        "type": "string"
+                    }
+                }
+            },
+            "ValidationError": {
+                "title": "ValidationError",
+                "required": [
+                    "loc",
+                    "msg",
+                    "type"
+                ],
+                "type": "object",
+                "properties": {
+                    "loc": {
+                        "title": "Location",
+                        "type": "array",
+                        "items": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ]
+                        }
+                    },
+                    "msg": {
+                        "title": "Message",
+                        "type": "string"
+                    },
+                    "type": {
+                        "title": "Error Type",
+                        "type": "string"
+                    }
+                }
+            }
+        }
+    }
+}

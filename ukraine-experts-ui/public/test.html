@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Display Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .test-section h2 {
+            margin-top: 0;
+            color: #2c5282;
+        }
+        .image-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 15px 0;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            border: 2px solid #3182ce;
+            border-radius: 4px;
+        }
+        .caption {
+            margin-top: 8px;
+            font-style: italic;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Image Display Test</h1>
+        
+        <div class="test-section">
+            <h2>Test 1: Placeholder Image</h2>
+            <div class="image-container">
+                <img src="https://via.placeholder.com/300x200" alt="Placeholder Image">
+                <p class="caption">This is a placeholder image from via.placeholder.com</p>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Test 2: Dr. Sabine Fischer's Image</h2>
+            <div class="image-container">
+                <img src="https://www.swp-berlin.org/assets/_processed_/b/2/csm_Fischer_Sabine_presse_6ae22e84d4.jpg" alt="Dr. Sabine Fischer">
+                <p class="caption">This is the image of Dr. Sabine Fischer from swp-berlin.org</p>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Test 3: Unsplash Random Image</h2>
+            <div class="image-container">
+                <img src="https://source.unsplash.com/random/300x200" alt="Random Image from Unsplash">
+                <p class="caption">This is a random image from Unsplash</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 
