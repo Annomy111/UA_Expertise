@@ -179,5 +179,20 @@ def get_statistics():
     """Get database statistics."""
     return db_utils.get_statistics()
 
+@app.post("/experts/{expert_id}/research", response_model=Optional[str])
+def research_expert_info(expert_id: str = Path(..., description="The ID of the expert to research")):
+    """Attempts to research and generate a description for an expert."""
+    try:
+        description = db_utils.research_expert_description(expert_id)
+        if description:
+            # Optionally, update the description in the database here
+            # db_utils.update_expert(expert_id, {"description": description})
+            pass # For now, just return the found description
+        return description
+    except Exception as e:
+        # Log the error appropriately in a real application
+        print(f"Research failed for {expert_id}: {e}") 
+        raise HTTPException(status_code=500, detail="Research failed")
+
 if __name__ == "__main__":
     uvicorn.run("api:app", host="0.0.0.0", port=8000, reload=True) 

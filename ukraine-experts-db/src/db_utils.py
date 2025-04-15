@@ -4,6 +4,17 @@ from typing import Dict, List, Any, Optional, Tuple
 import json
 import os
 from dotenv import load_dotenv
+from duckduckgo_search import DDGS
+
+try:
+    from langdetect import detect, DetectorFactory
+    from langdetect.lang_detect_exception import LangDetectException
+    # Ensure consistent results for short text
+    DetectorFactory.seed = 0
+    LANGDETECT_AVAILABLE = True
+except ImportError:
+    LANGDETECT_AVAILABLE = False
+    print("Warning: langdetect library not installed. Language detection disabled.")
 
 # Load environment variables
 load_dotenv()
@@ -485,6 +496,73 @@ def get_statistics() -> Dict:
     stats['top_tags'] = execute_query(tags_query)
     
     return stats
+
+# --- FUNCTION for Research ---
+def research_expert_description(expert_id: str) -> Optional[str]:
+    """Attempts to research expert description using DuckDuckGo and returns it if English, 
+       otherwise indicates manual action is needed.
+    """
+    # 1. Get expert details ...
+    expert = get_expert_details(expert_id)
+    if not expert:
+        return None
+    expert_name = expert.get('name', 'Unknown Expert')
+    affiliation = expert.get('affiliation')
+    search_query = f"{expert_name} biography profile"
+    if affiliation:
+        search_query += f" {affiliation}"
+
+    print(f"Attempting DuckDuckGo search (English preferred) for {expert_name} using query: \"{search_query}\"")
+
+    # 2. Perform Search
+    try:
+        with DDGS() as ddgs:
+            results = list(ddgs.text(search_query, region='wt-wt', max_results=1))
+            
+            if not results:
+                print("No DuckDuckGo search results found (English preferred)." )
+                return f"(Placeholder) No search results found for \"{expert_name}\" on DuckDuckGo (English preferred)."
+
+            # 3. Process Result and Detect Language
+            first_result_body = results[0]['body']
+            max_len = 500 # Limit length
+            snippet = first_result_body[:max_len]
+            if len(first_result_body) > max_len:
+                snippet += "..."
+            
+            print(f"Found snippet: {snippet[:100]}...")
+
+            if not LANGDETECT_AVAILABLE:
+                 print("Language detection skipped (library missing).")
+                 # Fallback: Return snippet but indicate it might need checking
+                 return f"(Auto-researched - Check Language) {snippet}"
+
+            try:
+                language = detect(snippet)
+                print(f"Detected language: {language}")
+                if language == 'en':
+                    # English detected, return the snippet
+                    return f"(Auto-researched) {snippet}"
+                else:
+                    # Non-English detected
+                    print(f"Non-English snippet detected ({language}). Requesting manual action.")
+                    return f"(Manual Action Needed) Found non-English snippet ({language}). Please edit manually."
+            except LangDetectException:
+                # Could not detect language (e.g., text too short or ambiguous)
+                print("Could not reliably detect language.")
+                return f"(Auto-researched - Check Language) {snippet}" # Return snippet but advise checking
+
+    except ImportError as e:
+        # Handle missing duckduckgo-search library specifically if needed, though outer try-except might catch it
+        if "duckduckgo_search" in str(e):
+             print("duckduckgo-search library not installed. Cannot perform search.")
+             return "(Research failed: duckduckgo-search library not installed.)"
+        else:
+             # Re-raise if it's another import error not handled by the top-level check
+             raise e 
+    except Exception as search_error:
+        print(f"Error during search or language detection: {search_error}")
+        return f"(Research failed: An error occurred: {search_error})"
 
 if __name__ == "__main__":
     # Example usage

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ukraine Experts Database API</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #0057b7;
+            border-bottom: 2px solid #ffd700;
+            padding-bottom: 10px;
+        }
+        .endpoint {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        .method {
+            font-weight: bold;
+            color: #0057b7;
+        }
+    </style>
+</head>
+<body>
+    <h1>Ukraine Experts Database API</h1>
+    <p>This is the API server for the Ukraine Experts Database. The API provides access to experts, organizations, and related data.</p>
+    
+    <h2>Available Endpoints:</h2>
+    
+    <div class="endpoint">
+        <p><span class="method">GET</span> /api/ - Welcome message and API info</p>
+    </div>
+    
+    <div class="endpoint">
+        <p><span class="method">GET</span> /api/experts - List all experts</p>
+        <p><span class="method">POST</span> /api/experts - Create a new expert</p>
+    </div>
+    
+    <div class="endpoint">
+        <p><span class="method">GET</span> /api/experts/{id} - Get expert details</p>
+        <p><span class="method">PUT</span> /api/experts/{id} - Update an expert</p>
+        <p><span class="method">DELETE</span> /api/experts/{id} - Delete an expert</p>
+    </div>
+    
+    <div class="endpoint">
+        <p><span class="method">GET</span> /api/cities - List all cities</p>
+    </div>
+    
+    <div class="endpoint">
+        <p><span class="method">GET</span> /api/search?q={term} - Search for experts</p>
+    </div>
+    
+    <div class="endpoint">
+        <p><span class="method">GET</span> /api/statistics - Get database statistics</p>
+    </div>
+    
+    <footer>
+        <p>Ukraine Experts Database &copy; 2025</p>
+    </footer>
+</body>
+</html>

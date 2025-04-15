@@ -1,0 +1,18 @@
+{
+  "name": "ukraine-experts-api-serverless",
+  "version": "1.0.0",
+  "description": "Serverless API for Ukraine Experts Database",
+  "main": "index.js",
+  "scripts": {
+    "dev": "netlify dev"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.1",
+    "pg": "^8.11.3",
+    "pg-format": "^1.0.4",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.19.0"
+  }
+}

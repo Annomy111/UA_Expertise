@@ -45,11 +45,14 @@ export default function ExpertDetailPage() {
         setLoading(true);
         const expertData = await getExpertDetails(expertId);
         console.log('Expert data received:', expertData);
+        console.log('Description from API:', expertData.description);
         setExpert(expertData);
         
-        // Automatically search for additional info if no description exists
         if (!expertData.description) {
+          console.log('Description is missing or empty, calling fetchAdditionalInfo.');
           fetchAdditionalInfo(expertData);
+        } else {
+          console.log('Description is present, not calling fetchAdditionalInfo.');
         }
       } catch (err) {
         console.error('Error fetching expert details:', err);
@@ -65,12 +68,16 @@ export default function ExpertDetailPage() {
   }, [expertId]);
 
   const fetchAdditionalInfo = async (expertData: Expert) => {
+    console.log('fetchAdditionalInfo called for:', expertData.name);
     try {
       setSearchLoading(true);
+      setSearchDescription(null);
       const additionalInfo = await searchExpertInfo(expertData);
+      console.log('Result from searchExpertInfo:', additionalInfo);
       setSearchDescription(additionalInfo);
     } catch (err) {
       console.error('Error fetching additional info:', err);
+      setSearchDescription("Failed to perform research.");
     } finally {
       setSearchLoading(false);
     }
@@ -197,10 +204,11 @@ export default function ExpertDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left column: About and Expertise */}
         <div className="lg:col-span-2 space-y-6">
-          {/* About Section */}
+          {/* About Section - Restore Research button and logic */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle>About</CardTitle>
+              {/* Restore Research button */}
               <Button 
                 variant="outline" 
                 size="sm" 
@@ -230,39 +238,30 @@ export default function ExpertDetailPage() {
                 <div className={expert.description ? "mt-6 pt-4 border-t border-gray-200" : ""}>
                   <div className="flex items-center mb-2">
                     <h3 className="font-semibold">Research Information:</h3>
-                    <span className="ml-2 text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
-                      AI-enhanced
-                    </span>
+                    {/* Optional: Add indicator if needed */}
+                    {/* <span className="ml-2 text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">AI-enhanced</span> */}
                   </div>
                   <p className="text-gray-700">{searchDescription}</p>
-                  <p className="text-xs text-gray-500 mt-2 italic">
-                    This information was gathered through internet search and may not be fully accurate.
-                  </p>
+                  {/* Optional: Add disclaimer if needed */}
+                  {/* <p className="text-xs text-gray-500 mt-2 italic">...</p> */}
                 </div>
               )}
               
               {/* If both are missing and search is in progress */}
-              {!expert.description && !searchDescription && searchLoading && (
+              {!expert.description && searchLoading && (
                 <div className="text-center py-6">
                   <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-2 text-blue-600" />
                   <p className="text-gray-600">Researching information about {expert.name}...</p>
                 </div>
               )}
               
-              {/* If both are missing and search is not in progress and has never been attempted */}
-              {!expert.description && !searchDescription && !searchLoading && (
-                <div>
-                  <p className="text-gray-500 italic mb-4">No description available</p>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={refreshResearchInfo}
-                    className="flex items-center gap-1"
-                  >
-                    <Search className="h-4 w-4" />
-                    Research Information
-                  </Button>
-                </div>
+              {/* If both are missing and search is done but failed or no result */}
+              {!expert.description && !searchLoading && !searchDescription && (
+                 <p className="text-gray-500 italic">No description available</p>
+                 // Button might be redundant if search is automatic, but kept for manual trigger
+              )}
+               {!expert.description && !searchLoading && searchDescription === "Failed to perform research." && (
+                 <p className="text-red-500 italic">Failed to perform research.</p>
               )}
             </CardContent>
           </Card>
@@ -380,41 +379,43 @@ export default function ExpertDetailPage() {
               <CardContent>
                 <ul className="space-y-3">
                   {expert.contacts.map((contact, index) => (
-                    <li key={index} className="flex items-start">
-                      {contact.type === 'email' && <Mail className="h-5 w-5 mr-2 text-gray-500 mt-0.5" />}
-                      {contact.type === 'phone' && <Phone className="h-5 w-5 mr-2 text-gray-500 mt-0.5" />}
-                      {contact.type === 'website' && <Globe className="h-5 w-5 mr-2 text-gray-500 mt-0.5" />}
-                      {contact.type === 'twitter' && <Twitter className="h-5 w-5 mr-2 text-gray-500 mt-0.5" />}
-                      {contact.type === 'facebook' && <Facebook className="h-5 w-5 mr-2 text-gray-500 mt-0.5" />}
-                      {contact.type === 'linkedin' && <Linkedin className="h-5 w-5 mr-2 text-gray-500 mt-0.5" />}
+                    <li key={contact.id || index} className="flex items-start">
+                      {/* Icons basierend auf contact.contact_type */}
+                      {contact.contact_type === 'email' && <Mail className="h-5 w-5 mr-2 text-gray-500 mt-0.5" />}
+                      {contact.contact_type === 'phone' && <Phone className="h-5 w-5 mr-2 text-gray-500 mt-0.5" />}
+                      {contact.contact_type === 'website' && <Globe className="h-5 w-5 mr-2 text-gray-500 mt-0.5" />}
+                      {contact.contact_type === 'twitter' && <Twitter className="h-5 w-5 mr-2 text-gray-500 mt-0.5" />}
+                      {contact.contact_type === 'facebook' && <Facebook className="h-5 w-5 mr-2 text-gray-500 mt-0.5" />}
+                      {contact.contact_type === 'linkedin' && <Linkedin className="h-5 w-5 mr-2 text-gray-500 mt-0.5" />}
                       
                       <div>
-                        <div className="font-medium capitalize">{contact.type}</div>
-                        {contact.type === 'email' && (
-                          <a href={`mailto:${contact.value}`} className="text-blue-600 hover:underline">
-                            {contact.value}
+                        <div className="font-medium capitalize">{contact.contact_type}</div>
+                        {/* Links/Text basierend auf contact.contact_type */}
+                        {contact.contact_type === 'email' && (
+                          <a href={`mailto:${contact.contact_value}`} className="text-blue-600 hover:underline">
+                            {contact.contact_value}
                           </a>
                         )}
-                        {contact.type === 'phone' && (
-                          <a href={`tel:${contact.value}`} className="text-blue-600 hover:underline">
-                            {contact.value}
+                        {contact.contact_type === 'phone' && (
+                          <a href={`tel:${contact.contact_value}`} className="text-blue-600 hover:underline">
+                            {contact.contact_value}
                           </a>
                         )}
-                        {(contact.type === 'website' || 
-                          contact.type === 'twitter' || 
-                          contact.type === 'facebook' || 
-                          contact.type === 'linkedin') && (
+                        {(contact.contact_type === 'website' || 
+                          contact.contact_type === 'twitter' || 
+                          contact.contact_type === 'facebook' || 
+                          contact.contact_type === 'linkedin') && (
                           <a 
-                            href={contact.value.startsWith('http') ? contact.value : `https://${contact.value}`} 
+                            href={contact.contact_value.startsWith('http') ? contact.contact_value : `https://${contact.contact_value}`}
                             target="_blank" 
                             rel="noopener noreferrer"
                             className="text-blue-600 hover:underline"
                           >
-                            {contact.value}
+                            {contact.contact_value}
                           </a>
                         )}
-                        {!['email', 'phone', 'website', 'twitter', 'facebook', 'linkedin'].includes(contact.type) && (
-                          <span>{contact.value}</span>
+                        {!['email', 'phone', 'website', 'twitter', 'facebook', 'linkedin'].includes(contact.contact_type) && (
+                          <span>{contact.contact_value}</span>
                         )}
                       </div>
                     </li>

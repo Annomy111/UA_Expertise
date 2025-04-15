@@ -8,19 +8,39 @@ This application provides a searchable database of Ukraine experts and organizat
 
 - A FastAPI backend (API)
 - A Next.js frontend (UI)
-- SQLite database for data storage
+- PostgreSQL database for data storage
 
 ## Local Development
 
 ### Prerequisites
 
-- Docker and Docker Compose
-- Node.js 20+ (for local UI development)
-- Python 3.9+ (for local API development)
+- PostgreSQL 15+
+- Node.js 20+ (for frontend development)
+- Python 3.9+ (for backend development)
 
-### Running with Docker Compose
+### Setup without Docker
 
-The easiest way to run the application locally is using Docker Compose:
+We provide scripts to make setup and running the application easy:
+
+1. Run the setup script to configure your local environment:
+   ```bash
+   chmod +x setup.sh
+   ./setup.sh
+   ```
+
+2. Start the application using:
+   ```bash
+   chmod +x start.sh
+   ./start.sh
+   ```
+
+This will start both the API and UI services:
+- API: http://localhost:8000
+- UI: http://localhost:3000
+
+### Alternative: Running with Docker Compose
+
+If you prefer using Docker, you can still run the application with Docker Compose:
 
 ```bash
 docker-compose up -d
@@ -28,18 +48,20 @@ docker-compose up -d
 
 This will start both the API and UI services:
 - API: http://localhost:8000
-- UI: http://localhost:3000
+- UI: http://localhost:3001
 
 ### Running Services Individually
 
 #### API
 
 ```bash
+cd ukraine-experts-db
+
 # Install dependencies
 pip install -r requirements.txt
 
 # Run the API
-uvicorn main:app --reload
+python -m uvicorn src.api:app --reload --host 0.0.0.0 --port 8000
 ```
 
 #### UI
@@ -54,27 +76,23 @@ npm install
 npm run dev
 ```
 
-## Deployment on Render
-
-This project is configured for deployment on Render using the `render.yaml` file.
-
-1. Fork or clone this repository to your GitHub account
-2. In Render, create a new "Blueprint" instance
-3. Connect your GitHub repository
-4. Render will automatically detect the `render.yaml` configuration
-5. Deploy the services
-
 ## Project Structure
 
 ```
 .
-├── Dockerfile              # Docker configuration for API
-├── docker-compose.yml      # Docker Compose configuration
-├── main.py                 # FastAPI application entry point
-├── requirements.txt        # Python dependencies
-├── render.yaml             # Render deployment configuration
-├── experts.db              # SQLite database (generated)
-└── ukraine-experts-ui/     # Next.js frontend application
+├── ukraine-experts-db/      # Backend API application
+│   ├── src/                 # Source code
+│   │   ├── api.py           # FastAPI application entry point
+│   │   └── db_utils.py      # Database utilities
+│   └── requirements.txt     # Python dependencies
+├── ukraine-experts-ui/      # Next.js frontend application
+│   ├── src/                 # Source code
+│   └── package.json         # Node.js dependencies
+├── docker-compose.yml       # Docker Compose configuration (optional)
+├── .env                     # Environment variables
+├── db-schema.sql            # Database schema
+├── setup.sh                 # Setup script for local development
+└── start.sh                 # Script to start the application locally
 ```
 
 ## Features

@@ -2,30 +2,49 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { getStatistics, getDiasporaOrganizations, getCities, Statistics, Expert, City } from '@/lib/api';
+import { Statistics, City, Expert } from '@/lib/api';
 import Layout from '@/components/layout/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MapPin, Users, Building2, ChevronRight, Search } from 'lucide-react';
 import ExpertsList from '@/components/experts/ExpertsList';
 
+// Define the Organization type
+type Organization = {
+  id: string;
+  name: string;
+  type: string;
+  is_diaspora: boolean;
+  city_id: number;
+  title?: string;
+  affiliation?: string;
+  description?: string;
+  image?: string;
+};
+
 export default function Home() {
   const [statistics, setStatistics] = useState<Statistics | null>(null);
-  const [diasporaOrgs, setDiasporaOrgs] = useState<Expert[]>([]);
+  const [diasporaOrgs, setDiasporaOrgs] = useState<Organization[]>([]);
+  const [featuredExperts, setFeaturedExperts] = useState<Organization[]>([]);
   const [cities, setCities] = useState<City[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // The API base URL for our deployed backend
+  const API_URL = 'https://ukraine-experts-api.windsurf.build/api';
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         // Fetch statistics
-        const statsResponse = await fetch('http://localhost:8000/statistics');
-        const statsData: Statistics = await statsResponse.json();
+        const statsResponse = await fetch(`${API_URL}/statistics`);
+        if (!statsResponse.ok) throw new Error('Failed to fetch statistics');
+        const statsData = await statsResponse.json();
         setStatistics(statsData);
 
-        // Fetch diaspora organizations
-        const orgsResponse = await fetch('http://localhost:8000/search?q=');
+        // Fetch experts for search
+        const orgsResponse = await fetch(`${API_URL}/experts`);
+        if (!orgsResponse.ok) throw new Error('Failed to fetch experts');
         const orgsData = await orgsResponse.json();
         
         // Filter for diaspora organizations
@@ -49,7 +68,8 @@ export default function Home() {
         setDiasporaOrgs(uniqueOrgs);
         
         // Get random featured experts
-        const expertsResponse = await fetch('http://localhost:8000/search?q=');
+        const expertsResponse = await fetch(`${API_URL}/experts`);
+        if (!expertsResponse.ok) throw new Error('Failed to fetch experts');
         const expertsData = await expertsResponse.json();
         
         // Filter to only include individuals
@@ -72,12 +92,20 @@ export default function Home() {
         
         // Select 3 random experts
         const shuffled = [...uniqueExperts].sort(() => 0.5 - Math.random());
-        setFeaturedExperts(shuffled.slice(0, 3));
+        setFeaturedExperts(shuffled.slice(0, 3) as Organization[]);
+        
+        // Fetch cities
+        const citiesResponse = await fetch(`${API_URL}/cities`);
+        if (!citiesResponse.ok) throw new Error('Failed to fetch cities');
+        const citiesData = await citiesResponse.json();
+        setCities(citiesData);
         
         setLoading(false);
-      } catch (error) {
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Failed to load data';
         console.error('Error fetching data:', error);
         setLoading(false);
+        setError(errorMessage);
       }
     };
 
@@ -217,16 +245,13 @@ export default function Home() {
       {diasporaOrgs.length > 0 && (
         <section className="mb-12">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold">Featured Diaspora Organizations</h2>
-            <Link href="/organizations?diaspora=true">
-              <Button variant="ghost" className="gap-1">
-                View All
-                <ChevronRight className="h-4 w-4" />
-              </Button>
+            <h2 className="text-2xl font-bold">Diaspora Organizations</h2>
+            <Link href="/organizations" className="flex items-center text-blue-600 hover:text-blue-800">
+              View all <ChevronRight className="h-4 w-4 ml-1" />
             </Link>
           </div>
           <ExpertsList 
-            experts={diasporaOrgs.slice(0, 3)} 
+            experts={diasporaOrgs.slice(0, 3) as any} 
             title="" 
           />
         </section>
