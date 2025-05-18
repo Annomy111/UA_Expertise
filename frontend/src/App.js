@@ -275,25 +275,9 @@ const Home = () => {
   );
 };
 
-// Expert detail page (placeholder)
-const ExpertDetail = () => {
-  return (
-    <div className="container mx-auto py-12 px-4">
-      <h1 className="text-3xl font-bold mb-4">Expert Detail Page</h1>
-      <p>This page would display detailed information about a specific expert.</p>
-    </div>
-  );
-};
-
-// Add expert page (placeholder)
-const AddExpert = () => {
-  return (
-    <div className="container mx-auto py-12 px-4">
-      <h1 className="text-3xl font-bold mb-4">Add New Expert</h1>
-      <p>This page would contain a form to add a new expert to the database.</p>
-    </div>
-  );
-};
+// Import pages
+import ExpertDetail from './pages/ExpertDetail';
+import AddExpert from './pages/AddExpert';
 
 // Main App component
 function App() {
