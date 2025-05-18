@@ -1,7 +1,9 @@
 /* App.css - Additional styles specific to the App component */
 
 .hero-gradient {
-  background: linear-gradient(90deg, rgba(0,87,183,1) 0%, rgba(0,87,183,0.8) 100%);
+  background: linear-gradient(90deg, rgba(0,87,183,0.8) 0%, rgba(0,87,183,0.6) 100%), url('https://images.unsplash.com/photo-1483019325791-45118fadd653');
+  background-size: cover;
+  background-position: center;
 }
 
 .ukraine-flag-gradient {
