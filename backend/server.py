@@ -10,6 +10,7 @@ from datetime import datetime
 import base64
 from dotenv import load_dotenv
 import logging
+from contextlib import asynccontextmanager
 
 # Initialize logging
 logging.basicConfig(level=logging.INFO)
@@ -23,11 +24,59 @@ MONGO_URL = os.environ.get("MONGO_URL", "mongodb://localhost:27017/ukraine_exper
 client = AsyncIOMotorClient(MONGO_URL)
 db = client.ukraine_experts
 
-from contextlib import asynccontextmanager
+# Models
+class ExpertBase(BaseModel):
+    name: str
+    type: str = "individual"  # individual or organization
+    expertise: List[str] = []
+    is_diaspora: bool = False
+    image: Optional[str] = None
+    title: Optional[str] = None
+    affiliation: Optional[str] = None
+    description: Optional[str] = None
+    city_id: Optional[str] = None
+    country: Optional[str] = None
+    contact_email: Optional[str] = None
+    contact_phone: Optional[str] = None
+    website: Optional[str] = None
+    social_media: Optional[Dict[str, str]] = None
+
+class ExpertCreate(ExpertBase):
+    pass
+
+class ExpertUpdate(ExpertBase):
+    name: Optional[str] = None
+    type: Optional[str] = None
+    expertise: Optional[List[str]] = None
+    is_diaspora: Optional[bool] = None
+
+class ExpertInDB(ExpertBase):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    created_at: datetime = Field(default_factory=datetime.now)
+    updated_at: datetime = Field(default_factory=datetime.now)
+
+class City(BaseModel):
+    id: str
+    name: str
+    country: str
+    coordinates: Optional[Dict[str, float]] = None
+
+class Statistics(BaseModel):
+    total_entries: int
+    by_type: Dict[str, int] 
+    by_city: List[Dict[str, Any]]
+    by_expertise: List[Dict[str, int]]
+
+# Helper functions
+async def get_expert_by_id(expert_id: str):
+    expert = await db.experts.find_one({"id": expert_id})
+    if expert:
+        return expert
+    raise HTTPException(status_code=404, detail=f"Expert with ID {expert_id} not found")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: Initialize database connection and seed data if needed
+    # Startup: Seed initial data if database is empty
     try:
         # Check if we need to seed data
         count = await db.experts.count_documents({})
@@ -142,58 +191,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Models
-class ExpertBase(BaseModel):
-    name: str
-    type: str = "individual"  # individual or organization
-    expertise: List[str] = []
-    is_diaspora: bool = False
-    image: Optional[str] = None
-    title: Optional[str] = None
-    affiliation: Optional[str] = None
-    description: Optional[str] = None
-    city_id: Optional[str] = None
-    country: Optional[str] = None
-    contact_email: Optional[str] = None
-    contact_phone: Optional[str] = None
-    website: Optional[str] = None
-    social_media: Optional[Dict[str, str]] = None
-
-class ExpertCreate(ExpertBase):
-    pass
-
-class ExpertUpdate(ExpertBase):
-    name: Optional[str] = None
-    type: Optional[str] = None
-    expertise: Optional[List[str]] = None
-    is_diaspora: Optional[bool] = None
-
-class ExpertInDB(ExpertBase):
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    created_at: datetime = Field(default_factory=datetime.now)
-    updated_at: datetime = Field(default_factory=datetime.now)
-
-class City(BaseModel):
-    id: str
-    name: str
-    country: str
-    coordinates: Optional[Dict[str, float]] = None
-
-class Statistics(BaseModel):
-    total_entries: int
-    by_type: Dict[str, int] 
-    by_city: List[Dict[str, Any]]
-    by_expertise: List[Dict[str, int]]
-
-# Helper functions
-async def get_expert_by_id(expert_id: str):
-    expert = await db.experts.find_one({"id": expert_id})
-    if expert:
-        return expert
-    raise HTTPException(status_code=404, detail=f"Expert with ID {expert_id} not found")
-
-
 
 # API Routes
 @app.get("/api/experts", response_model=List[dict])
