@@ -72,10 +72,10 @@ const Home = () => {
   return (
     <div>
       {/* Hero Section */}
-      <section className="hero-gradient py-20 px-4 text-white">
-        <div className="container mx-auto text-center">
+      <section className="hero-gradient py-32 px-4 text-white relative">
+        <div className="container mx-auto text-center relative z-10">
           <motion.h1 
-            className="text-4xl md:text-6xl font-bold mb-6"
+            className="text-4xl md:text-6xl font-bold mb-6 text-shadow-lg"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
@@ -83,7 +83,7 @@ const Home = () => {
             Ukraine Experts Database
           </motion.h1>
           <motion.p 
-            className="text-xl mb-8 max-w-2xl mx-auto"
+            className="text-xl mb-8 max-w-2xl mx-auto text-shadow-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.2 }}
@@ -91,7 +91,7 @@ const Home = () => {
             Find Ukrainian experts and organizations across various fields and disciplines
           </motion.p>
           <motion.div 
-            className="max-w-xl mx-auto"
+            className="max-w-xl mx-auto bg-white/10 backdrop-blur-sm p-4 rounded-lg shadow-xl"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.4 }}
