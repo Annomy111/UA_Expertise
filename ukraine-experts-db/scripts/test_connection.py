@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 import sys
 import os
+# Ensure the repository root is on the Python path so that our local
+# stub modules (e.g. a lightweight psycopg2 replacement) can be
+# imported when running this script directly.
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+
 import psycopg2
 import json
 
