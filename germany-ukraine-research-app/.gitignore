@@ -36,6 +36,11 @@ exports/
 .env
 .env.local
 
+# Firebase Credentials (WICHTIG: Niemals committen!)
+config/firebase-config.json
+**/firebase-config.json
+firebase-adminsdk-*.json
+
 # IDE
 .vscode/
 .idea/

@@ -4,6 +4,7 @@ Eine automatisierte Research-App zum Finden und Aktualisieren von Kontakten zur 
 
 ## Features
 
+- **Firebase/Firestore Backend**: Echtzeit-Datenbank mit Cloud-Sync
 - **Automatische Web-Recherche**: Findet aktuelle Organisationen, NGOs, Think Tanks und Initiativen
 - **Multi-Source Datensammlung**: Sammelt Daten aus verschiedenen Quellen
 - **Automatische Updates**: Hält die Kontaktdaten immer aktuell
@@ -20,19 +21,83 @@ Die App durchsucht automatisch:
 - Medienorganisationen mit Ukraine-Fokus
 - Lokale Initiativen und Vereine
 
+## Voraussetzungen
+
+- Python 3.9+
+- Self-hosted Firebase-Instanz mit Firestore
+- Firebase Service Account Credentials
+
 ## Installation
+
+### 1. Schnellinstallation (empfohlen)
+
+```bash
+cd germany-ukraine-research-app
+./install.sh
+```
+
+Das Installations-Skript:
+- Erstellt eine virtuelle Python-Umgebung
+- Installiert alle Abhängigkeiten
+- Erstellt die .env-Datei
+- Initialisiert die Datenbank
+
+### 2. Manuelle Installation
 
 ```bash
 cd germany-ukraine-research-app
 
+# Virtuelle Umgebung erstellen
+python3 -m venv venv
+source venv/bin/activate
+
 # Python-Abhängigkeiten installieren
 pip install -r requirements.txt
+```
 
-# Datenbank initialisieren
+### 3. Firebase-Konfiguration
+
+**Wichtig:** Die App benötigt Zugriff auf Ihre self-hosted Firebase-Instanz.
+
+1. **Service Account Credentials holen:**
+   - Von Ihrer Firebase Console: Project Settings > Service Accounts
+   - "Generate new private key" klicken
+   - JSON-Datei herunterladen
+
+2. **Credentials-Datei platzieren:**
+   ```bash
+   cp /pfad/zu/firebase-credentials.json config/firebase-config.json
+   ```
+
+3. **.env-Datei erstellen:**
+   ```bash
+   cp .env.example .env
+   ```
+
+4. **.env bearbeiten:**
+   ```bash
+   # Erforderlich: Pfad zu Firebase Credentials
+   FIREBASE_CONFIG_PATH=config/firebase-config.json
+
+   # Erforderlich: URL Ihrer Firebase-Instanz
+   FIREBASE_URL=https://your-firebase-instance.com
+
+   # Optional: Project ID
+   FIREBASE_PROJECT_ID=your-project-id
+   ```
+
+**Ausführliche Firebase-Setup-Anleitung:** Siehe `config/FIREBASE_SETUP.md`
+
+### 4. Datenbank initialisieren
+
+```bash
 python src/init_db.py
+```
 
-# Erste Datensammlung durchführen
-python src/scraper.py
+Sie sollten sehen:
+```
+✓ Firebase/Firestore initialisiert
+  Verbunden mit: https://your-firebase-instance.com
 ```
 
 ## Verwendung

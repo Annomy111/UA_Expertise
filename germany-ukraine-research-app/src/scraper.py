@@ -11,8 +11,12 @@ import time
 import re
 from datetime import datetime
 from fake_useragent import UserAgent
+from dotenv import load_dotenv
 from database import db_manager
 import json
+
+# Lade Umgebungsvariablen
+load_dotenv()
 
 
 class ContactScraper:

@@ -4,9 +4,13 @@ Flask Web-App für Germany-Ukraine Contact Research
 """
 
 from flask import Flask, render_template, request, jsonify, send_file
+from dotenv import load_dotenv
 from database import db_manager
 import os
 from datetime import datetime
+
+# Lade Umgebungsvariablen
+load_dotenv()
 
 app = Flask(__name__,
             template_folder='../templates',
@@ -77,16 +81,13 @@ def export_data(format):
         return jsonify({'error': str(e)}), 400
 
 
-@app.route('/contact/<int:contact_id>')
+@app.route('/contact/<contact_id>')
 def contact_detail(contact_id):
     """Detail-Seite für einen Kontakt"""
-    session = db_manager.get_session()
-    from database import Contact
-    contact = session.query(Contact).filter_by(id=contact_id).first()
-    session.close()
+    contact = db_manager.get_contact_by_id(contact_id)
 
     if contact:
-        return render_template('contact_detail.html', contact=contact.to_dict())
+        return render_template('contact_detail.html', contact=contact)
     else:
         return "Kontakt nicht gefunden", 404
 

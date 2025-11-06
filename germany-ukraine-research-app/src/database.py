@@ -1,214 +1,325 @@
 """
 Datenbank-Modelle und -Utilities für die Germany-Ukraine Contact Research App
+Firebase/Firestore Backend
 """
 
-from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, Boolean
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+import firebase_admin
+from firebase_admin import credentials, firestore
 from datetime import datetime
 import os
-
-Base = declarative_base()
-
-
-class Contact(Base):
-    """Kontakt-Modell für Organisationen und Personen"""
-    __tablename__ = 'contacts'
-
-    id = Column(Integer, primary_key=True)
-    name = Column(String(255), nullable=False)
-    organization = Column(String(255))
-    type = Column(String(100))  # government, ngo, think_tank, university, media, local_initiative
-    category = Column(String(100))
-
-    # Kontaktinformationen
-    email = Column(String(255))
-    phone = Column(String(100))
-    website = Column(String(500))
-    address = Column(Text)
-    city = Column(String(100))
-    postal_code = Column(String(20))
-
-    # Social Media
-    twitter = Column(String(255))
-    linkedin = Column(String(255))
-    facebook = Column(String(255))
-
-    # Beschreibung
-    description = Column(Text)
-    focus_areas = Column(Text)  # JSON-String mit Schwerpunkten
-
-    # Metadaten
-    source_url = Column(String(500))
-    last_updated = Column(DateTime, default=datetime.utcnow)
-    verified = Column(Boolean, default=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
-
-    def to_dict(self):
-        """Konvertiere Kontakt zu Dictionary"""
-        return {
-            'id': self.id,
-            'name': self.name,
-            'organization': self.organization,
-            'type': self.type,
-            'category': self.category,
-            'email': self.email,
-            'phone': self.phone,
-            'website': self.website,
-            'address': self.address,
-            'city': self.city,
-            'postal_code': self.postal_code,
-            'twitter': self.twitter,
-            'linkedin': self.linkedin,
-            'facebook': self.facebook,
-            'description': self.description,
-            'focus_areas': self.focus_areas,
-            'source_url': self.source_url,
-            'last_updated': self.last_updated.isoformat() if self.last_updated else None,
-            'verified': self.verified,
-            'created_at': self.created_at.isoformat() if self.created_at else None
-        }
+import json
+from typing import Optional, List, Dict
+import hashlib
 
 
-class SearchLog(Base):
-    """Log für durchgeführte Suchen"""
-    __tablename__ = 'search_logs'
+class FirebaseManager:
+    """Manager-Klasse für Firebase/Firestore Operationen"""
 
-    id = Column(Integer, primary_key=True)
-    search_term = Column(String(500))
-    source = Column(String(255))
-    results_found = Column(Integer)
-    timestamp = Column(DateTime, default=datetime.utcnow)
-    success = Column(Boolean, default=True)
-    error_message = Column(Text)
-
-
-class DatabaseManager:
-    """Manager-Klasse für Datenbankoperationen"""
-
-    def __init__(self, db_path='data/contacts.db'):
-        self.db_path = db_path
-        self.engine = None
-        self.Session = None
+    def __init__(self):
+        self.db = None
+        self.app = None
+        self.initialized = False
 
     def initialize(self):
-        """Initialisiere Datenbank"""
-        # Stelle sicher, dass das data-Verzeichnis existiert
-        os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
+        """Initialisiere Firebase-Verbindung"""
+        if self.initialized:
+            print("ℹ Firebase bereits initialisiert")
+            return
 
-        # Erstelle Engine und Session
-        self.engine = create_engine(f'sqlite:///{self.db_path}')
-        Base.metadata.create_all(self.engine)
-        self.Session = sessionmaker(bind=self.engine)
+        try:
+            # Lade Firebase-Konfiguration
+            firebase_config_path = os.getenv('FIREBASE_CONFIG_PATH', 'config/firebase-config.json')
+            firebase_url = os.getenv('FIREBASE_URL')
 
-        print(f"✓ Datenbank initialisiert: {self.db_path}")
+            if not os.path.exists(firebase_config_path):
+                raise FileNotFoundError(
+                    f"Firebase-Konfiguration nicht gefunden: {firebase_config_path}\n"
+                    "Bitte erstelle die Datei oder setze FIREBASE_CONFIG_PATH in .env"
+                )
 
-    def get_session(self):
-        """Hole neue Session"""
-        if self.Session is None:
+            # Initialisiere Firebase Admin SDK
+            cred = credentials.Certificate(firebase_config_path)
+
+            # Für self-hosted Firebase, setze databaseURL
+            firebase_options = {}
+            if firebase_url:
+                firebase_options['databaseURL'] = firebase_url
+
+            self.app = firebase_admin.initialize_app(cred, firebase_options)
+            self.db = firestore.client()
+            self.initialized = True
+
+            print(f"✓ Firebase/Firestore initialisiert")
+            if firebase_url:
+                print(f"  Verbunden mit: {firebase_url}")
+
+        except Exception as e:
+            print(f"✗ Fehler beim Initialisieren von Firebase: {e}")
+            raise
+
+    def get_db(self):
+        """Hole Firestore-Client"""
+        if not self.initialized:
             self.initialize()
-        return self.Session()
+        return self.db
+
+    def _generate_contact_id(self, contact_data):
+        """Generiere eindeutige ID für Kontakt basierend auf Website oder Name"""
+        if contact_data.get('website'):
+            return hashlib.md5(contact_data['website'].encode()).hexdigest()
+        elif contact_data.get('name'):
+            identifier = f"{contact_data['name']}_{contact_data.get('organization', '')}"
+            return hashlib.md5(identifier.encode()).hexdigest()
+        else:
+            # Fallback: Timestamp-basierte ID
+            return None
+
+    def _prepare_contact_data(self, contact_data):
+        """Bereite Kontaktdaten für Firestore vor"""
+        prepared = {}
+
+        # Alle Felder mit Standardwerten
+        fields = [
+            'name', 'organization', 'type', 'category',
+            'email', 'phone', 'website', 'address', 'city', 'postal_code',
+            'twitter', 'linkedin', 'facebook',
+            'description', 'focus_areas', 'source_url'
+        ]
+
+        for field in fields:
+            prepared[field] = contact_data.get(field, '')
+
+        # Boolean-Felder
+        prepared['verified'] = contact_data.get('verified', False)
+
+        # Timestamps
+        if 'last_updated' not in contact_data:
+            prepared['last_updated'] = firestore.SERVER_TIMESTAMP
+        else:
+            prepared['last_updated'] = contact_data['last_updated']
+
+        if 'created_at' not in contact_data:
+            prepared['created_at'] = firestore.SERVER_TIMESTAMP
+        else:
+            prepared['created_at'] = contact_data['created_at']
+
+        return prepared
 
     def add_contact(self, contact_data):
         """Füge neuen Kontakt hinzu oder aktualisiere existierenden"""
-        session = self.get_session()
         try:
-            # Prüfe ob Kontakt bereits existiert (basierend auf Website oder Name)
-            existing = None
-            if contact_data.get('website'):
-                existing = session.query(Contact).filter_by(
-                    website=contact_data['website']
-                ).first()
+            db = self.get_db()
+            contacts_ref = db.collection('contacts')
 
-            if not existing and contact_data.get('name'):
-                existing = session.query(Contact).filter_by(
-                    name=contact_data['name'],
-                    organization=contact_data.get('organization')
-                ).first()
+            # Generiere oder hole ID
+            doc_id = self._generate_contact_id(contact_data)
 
-            if existing:
-                # Update existierenden Kontakt
-                for key, value in contact_data.items():
-                    if value and hasattr(existing, key):
-                        setattr(existing, key, value)
-                existing.last_updated = datetime.utcnow()
-                print(f"  ↻ Aktualisiert: {existing.name}")
+            if doc_id:
+                # Prüfe ob Kontakt existiert
+                doc_ref = contacts_ref.document(doc_id)
+                doc = doc_ref.get()
+
+                prepared_data = self._prepare_contact_data(contact_data)
+
+                if doc.exists:
+                    # Update existierenden Kontakt
+                    prepared_data['last_updated'] = firestore.SERVER_TIMESTAMP
+                    doc_ref.update(prepared_data)
+                    print(f"  ↻ Aktualisiert: {contact_data.get('name', 'Unbekannt')}")
+                else:
+                    # Erstelle neuen Kontakt
+                    doc_ref.set(prepared_data)
+                    print(f"  + Neu: {contact_data.get('name', 'Unbekannt')}")
             else:
-                # Erstelle neuen Kontakt
-                contact = Contact(**contact_data)
-                session.add(contact)
+                # Kein eindeutiger Identifier - erstelle mit Auto-ID
+                prepared_data = self._prepare_contact_data(contact_data)
+                contacts_ref.add(prepared_data)
                 print(f"  + Neu: {contact_data.get('name', 'Unbekannt')}")
 
-            session.commit()
             return True
+
         except Exception as e:
             print(f"  ✗ Fehler beim Speichern: {e}")
-            session.rollback()
             return False
-        finally:
-            session.close()
 
-    def search_contacts(self, query=None, contact_type=None, city=None):
+    def search_contacts(self, query: Optional[str] = None,
+                       contact_type: Optional[str] = None,
+                       city: Optional[str] = None) -> List[Dict]:
         """Suche Kontakte"""
-        session = self.get_session()
         try:
-            contacts = session.query(Contact)
+            db = self.get_db()
+            contacts_ref = db.collection('contacts')
 
-            if query:
-                search = f"%{query}%"
-                contacts = contacts.filter(
-                    (Contact.name.like(search)) |
-                    (Contact.organization.like(search)) |
-                    (Contact.description.like(search)) |
-                    (Contact.focus_areas.like(search))
-                )
+            # Basis-Query
+            contacts_query = contacts_ref
 
+            # Firestore unterstützt keine OR-Queries direkt für Textsuche
+            # Daher müssen wir erst filtern und dann in Python weitersuchen
+
+            # Filter nach Typ
             if contact_type:
-                contacts = contacts.filter_by(type=contact_type)
+                contacts_query = contacts_query.where('type', '==', contact_type)
 
+            # Filter nach Stadt
             if city:
-                contacts = contacts.filter_by(city=city)
+                contacts_query = contacts_query.where('city', '==', city)
 
-            return [c.to_dict() for c in contacts.all()]
-        finally:
-            session.close()
+            # Hole alle Dokumente
+            docs = contacts_query.stream()
 
-    def get_statistics(self):
-        """Hole Statistiken"""
-        session = self.get_session()
+            results = []
+            for doc in docs:
+                data = doc.to_dict()
+                data['id'] = doc.id
+
+                # Konvertiere Timestamps zu ISO-Format
+                if 'last_updated' in data and data['last_updated']:
+                    if hasattr(data['last_updated'], 'isoformat'):
+                        data['last_updated'] = data['last_updated'].isoformat()
+                    else:
+                        data['last_updated'] = str(data['last_updated'])
+
+                if 'created_at' in data and data['created_at']:
+                    if hasattr(data['created_at'], 'isoformat'):
+                        data['created_at'] = data['created_at'].isoformat()
+                    else:
+                        data['created_at'] = str(data['created_at'])
+
+                # Textsuche in Python (Firestore hat keine LIKE-Suche)
+                if query:
+                    search_fields = [
+                        data.get('name', ''),
+                        data.get('organization', ''),
+                        data.get('description', ''),
+                        data.get('focus_areas', '')
+                    ]
+                    search_text = ' '.join(search_fields).lower()
+
+                    if query.lower() in search_text:
+                        results.append(data)
+                else:
+                    results.append(data)
+
+            return results
+
+        except Exception as e:
+            print(f"✗ Fehler bei der Suche: {e}")
+            return []
+
+    def get_contact_by_id(self, contact_id: str) -> Optional[Dict]:
+        """Hole einzelnen Kontakt per ID"""
         try:
-            total = session.query(Contact).count()
-            by_type = {}
+            db = self.get_db()
+            doc_ref = db.collection('contacts').document(contact_id)
+            doc = doc_ref.get()
 
-            for contact_type in ['government', 'ngo', 'think_tank', 'university', 'media', 'local_initiative']:
-                count = session.query(Contact).filter_by(type=contact_type).count()
-                if count > 0:
-                    by_type[contact_type] = count
+            if doc.exists:
+                data = doc.to_dict()
+                data['id'] = doc.id
+
+                # Konvertiere Timestamps
+                if 'last_updated' in data and data['last_updated']:
+                    if hasattr(data['last_updated'], 'isoformat'):
+                        data['last_updated'] = data['last_updated'].isoformat()
+                    else:
+                        data['last_updated'] = str(data['last_updated'])
+
+                if 'created_at' in data and data['created_at']:
+                    if hasattr(data['created_at'], 'isoformat'):
+                        data['created_at'] = data['created_at'].isoformat()
+                    else:
+                        data['created_at'] = str(data['created_at'])
+
+                return data
+            return None
+
+        except Exception as e:
+            print(f"✗ Fehler beim Abrufen des Kontakts: {e}")
+            return None
+
+    def get_statistics(self) -> Dict:
+        """Hole Statistiken"""
+        try:
+            db = self.get_db()
+            contacts_ref = db.collection('contacts')
+
+            # Hole alle Kontakte
+            all_contacts = list(contacts_ref.stream())
+            total = len(all_contacts)
+
+            # Zähle nach Typ
+            by_type = {}
+            for doc in all_contacts:
+                data = doc.to_dict()
+                contact_type = data.get('type', 'unknown')
+                by_type[contact_type] = by_type.get(contact_type, 0) + 1
+
+            # Entferne Typen mit 0 Einträgen
+            by_type = {k: v for k, v in by_type.items() if v > 0}
 
             return {
                 'total_contacts': total,
                 'by_type': by_type,
                 'last_updated': datetime.utcnow().isoformat()
             }
-        finally:
-            session.close()
 
-    def log_search(self, search_term, source, results_found, success=True, error=None):
+        except Exception as e:
+            print(f"✗ Fehler beim Abrufen der Statistiken: {e}")
+            return {
+                'total_contacts': 0,
+                'by_type': {},
+                'last_updated': datetime.utcnow().isoformat()
+            }
+
+    def log_search(self, search_term: str, source: str, results_found: int,
+                   success: bool = True, error: Optional[str] = None):
         """Logge Suchdurchlauf"""
-        session = self.get_session()
         try:
-            log = SearchLog(
-                search_term=search_term,
-                source=source,
-                results_found=results_found,
-                success=success,
-                error_message=error
-            )
-            session.add(log)
-            session.commit()
-        finally:
-            session.close()
+            db = self.get_db()
+            logs_ref = db.collection('search_logs')
+
+            log_data = {
+                'search_term': search_term,
+                'source': source,
+                'results_found': results_found,
+                'timestamp': firestore.SERVER_TIMESTAMP,
+                'success': success,
+                'error_message': error or ''
+            }
+
+            logs_ref.add(log_data)
+
+        except Exception as e:
+            print(f"⚠ Fehler beim Logging: {e}")
+
+    def delete_contact(self, contact_id: str) -> bool:
+        """Lösche Kontakt"""
+        try:
+            db = self.get_db()
+            db.collection('contacts').document(contact_id).delete()
+            print(f"✓ Kontakt {contact_id} gelöscht")
+            return True
+        except Exception as e:
+            print(f"✗ Fehler beim Löschen: {e}")
+            return False
+
+    def get_all_cities(self) -> List[str]:
+        """Hole alle Städte aus der Datenbank"""
+        try:
+            db = self.get_db()
+            contacts = db.collection('contacts').stream()
+
+            cities = set()
+            for doc in contacts:
+                data = doc.to_dict()
+                if data.get('city'):
+                    cities.add(data['city'])
+
+            return sorted(list(cities))
+        except Exception as e:
+            print(f"✗ Fehler beim Abrufen der Städte: {e}")
+            return []
 
 
 # Globale Instanz
-db_manager = DatabaseManager()
+db_manager = FirebaseManager()
