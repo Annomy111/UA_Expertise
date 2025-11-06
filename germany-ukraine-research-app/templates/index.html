@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Germany-Ukraine Contact Research</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>🇺🇦 Germany-Ukraine Contact Research</h1>
+            <p>Aktuelle Kontakte zur Ukraine-Arbeit in Deutschland</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Statistiken -->
+        <section class="stats">
+            <h2>📊 Statistiken</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>{{ stats.total_contacts }}</h3>
+                    <p>Gesamt Kontakte</p>
+                </div>
+                {% for type, count in stats.by_type.items() %}
+                <div class="stat-card">
+                    <h3>{{ count }}</h3>
+                    <p>{{ type }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- Suchformular -->
+        <section class="search">
+            <h2>🔍 Suche</h2>
+            <form id="searchForm">
+                <div class="form-grid">
+                    <input type="text" id="searchQuery" placeholder="Suche nach Name, Organisation, Beschreibung...">
+
+                    <select id="typeFilter">
+                        <option value="">Alle Typen</option>
+                        <option value="government">Regierung/Behörden</option>
+                        <option value="ngo">NGOs</option>
+                        <option value="think_tank">Think Tanks</option>
+                        <option value="university">Universitäten</option>
+                        <option value="media">Medien</option>
+                        <option value="local_initiative">Lokale Initiativen</option>
+                    </select>
+
+                    <input type="text" id="cityFilter" placeholder="Stadt">
+
+                    <button type="submit">Suchen</button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Ergebnisse -->
+        <section class="results">
+            <div class="results-header">
+                <h2>📋 Kontakte</h2>
+                <div class="export-buttons">
+                    <a href="/api/export/csv" class="btn btn-export">CSV Export</a>
+                    <a href="/api/export/json" class="btn btn-export">JSON Export</a>
+                    <a href="/api/export/excel" class="btn btn-export">Excel Export</a>
+                </div>
+            </div>
+            <div id="resultsContainer">
+                <p class="loading">Lade Kontakte...</p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>Letzte Aktualisierung: {{ stats.last_updated }}</p>
+            <p>Alle Daten sind öffentlich verfügbar und DSGVO-konform</p>
+        </div>
+    </footer>
+
+    <script>
+        // Lade alle Kontakte beim Start
+        document.addEventListener('DOMContentLoaded', function() {
+            loadContacts();
+        });
+
+        // Suchformular
+        document.getElementById('searchForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            searchContacts();
+        });
+
+        function loadContacts() {
+            fetch('/api/contacts')
+                .then(response => response.json())
+                .then(data => displayResults(data.results))
+                .catch(error => {
+                    console.error('Fehler:', error);
+                    document.getElementById('resultsContainer').innerHTML =
+                        '<p class="error">Fehler beim Laden der Kontakte</p>';
+                });
+        }
+
+        function searchContacts() {
+            const query = document.getElementById('searchQuery').value;
+            const type = document.getElementById('typeFilter').value;
+            const city = document.getElementById('cityFilter').value;
+
+            const params = new URLSearchParams();
+            if (query) params.append('q', query);
+            if (type) params.append('type', type);
+            if (city) params.append('city', city);
+
+            fetch('/api/search?' + params.toString())
+                .then(response => response.json())
+                .then(data => displayResults(data.results))
+                .catch(error => console.error('Fehler:', error));
+        }
+
+        function displayResults(contacts) {
+            const container = document.getElementById('resultsContainer');
+
+            if (contacts.length === 0) {
+                container.innerHTML = '<p class="no-results">Keine Kontakte gefunden</p>';
+                return;
+            }
+
+            let html = '<div class="contacts-grid">';
+
+            contacts.forEach(contact => {
+                html += `
+                    <div class="contact-card">
+                        <div class="contact-header">
+                            <h3>${contact.name || 'Unbekannt'}</h3>
+                            <span class="badge badge-${contact.type}">${contact.type || 'N/A'}</span>
+                        </div>
+                        ${contact.organization ? `<p class="organization">${contact.organization}</p>` : ''}
+                        ${contact.description ? `<p class="description">${truncate(contact.description, 150)}</p>` : ''}
+
+                        <div class="contact-info">
+                            ${contact.email ? `<p>📧 <a href="mailto:${contact.email}">${contact.email}</a></p>` : ''}
+                            ${contact.phone ? `<p>📞 ${contact.phone}</p>` : ''}
+                            ${contact.website ? `<p>🌐 <a href="${contact.website}" target="_blank">Website</a></p>` : ''}
+                            ${contact.city ? `<p>📍 ${contact.city}</p>` : ''}
+                        </div>
+
+                        <div class="contact-footer">
+                            <a href="/contact/${contact.id}" class="btn btn-details">Details</a>
+                            ${contact.website ? `<a href="${contact.website}" target="_blank" class="btn btn-link">Besuchen</a>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function truncate(text, length) {
+            if (!text) return '';
+            return text.length > length ? text.substring(0, length) + '...' : text;
+        }
+    </script>
+</body>
+</html>

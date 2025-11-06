@@ -1,0 +1,139 @@
+sources:
+  # Regierungsstellen und Behörden
+  government:
+    - name: "Auswärtiges Amt"
+      url: "https://www.auswaertiges-amt.de"
+      keywords: ["Ukraine", "Hilfe", "Unterstützung"]
+      type: "government"
+
+    - name: "BMZ - Bundesministerium für wirtschaftliche Zusammenarbeit"
+      url: "https://www.bmz.de"
+      keywords: ["Ukraine", "Entwicklungszusammenarbeit"]
+      type: "government"
+
+    - name: "Bundeszentrale für politische Bildung"
+      url: "https://www.bpb.de"
+      keywords: ["Ukraine", "Osteuropa"]
+      type: "government"
+
+  # NGOs und Hilfsorganisationen
+  ngos:
+    - name: "Aktion Deutschland Hilft"
+      url: "https://www.aktion-deutschland-hilft.de"
+      keywords: ["Ukraine"]
+      type: "ngo"
+
+    - name: "Caritas Deutschland"
+      url: "https://www.caritas.de"
+      keywords: ["Ukraine", "Flüchtlinge"]
+      type: "ngo"
+
+    - name: "Diakonie Deutschland"
+      url: "https://www.diakonie.de"
+      keywords: ["Ukraine", "Hilfe"]
+      type: "ngo"
+
+    - name: "Deutsches Rotes Kreuz"
+      url: "https://www.drk.de"
+      keywords: ["Ukraine"]
+      type: "ngo"
+
+    - name: "UNICEF Deutschland"
+      url: "https://www.unicef.de"
+      keywords: ["Ukraine"]
+      type: "ngo"
+
+  # Think Tanks und Forschung
+  research:
+    - name: "Stiftung Wissenschaft und Politik (SWP)"
+      url: "https://www.swp-berlin.org"
+      keywords: ["Ukraine", "Osteuropa", "Russland"]
+      type: "think_tank"
+
+    - name: "Deutsche Gesellschaft für Auswärtige Politik (DGAP)"
+      url: "https://dgap.org"
+      keywords: ["Ukraine", "Osteuropa"]
+      type: "think_tank"
+
+    - name: "Zentrum für Osteuropa- und internationale Studien (ZOiS)"
+      url: "https://www.zois-berlin.de"
+      keywords: ["Ukraine"]
+      type: "think_tank"
+
+    - name: "Bundesinstitut für ostwissenschaftliche und internationale Studien"
+      url: "https://www.biost.de"
+      keywords: ["Ukraine", "Osteuropa"]
+      type: "think_tank"
+
+  # Universitäten
+  universities:
+    - name: "Osteuropa-Institut der Freien Universität Berlin"
+      url: "https://www.oei.fu-berlin.de"
+      keywords: ["Ukraine"]
+      type: "university"
+
+    - name: "Institut für Europäische Politik (IEP)"
+      url: "https://www.iep-berlin.de"
+      keywords: ["Ukraine", "Osteuropa"]
+      type: "university"
+
+  # Medien
+  media:
+    - name: "Ukraine-Analysen"
+      url: "https://www.laender-analysen.de/ukraine"
+      keywords: ["Ukraine"]
+      type: "media"
+
+    - name: "Dekoder"
+      url: "https://www.dekoder.org"
+      keywords: ["Ukraine", "Osteuropa"]
+      type: "media"
+
+  # Lokale Initiativen (Beispiele)
+  local:
+    - name: "Berlin-Ukraine"
+      search_term: "Ukraine Hilfe Berlin Verein"
+      type: "local_initiative"
+
+    - name: "Munich-Ukraine"
+      search_term: "Ukraine Hilfe München Organisation"
+      type: "local_initiative"
+
+    - name: "Hamburg-Ukraine"
+      search_term: "Ukraine Hilfe Hamburg Initiative"
+      type: "local_initiative"
+
+# Scraping-Einstellungen
+scraping:
+  user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+  timeout: 30
+  delay_between_requests: 2
+  max_retries: 3
+
+# Update-Einstellungen
+updates:
+  frequency_days: 7
+  auto_update: true
+
+# Suchparameter
+search:
+  keywords:
+    - "Ukraine Hilfe Deutschland"
+    - "Ukraine Unterstützung Organisation"
+    - "Ukraine Flüchtlinge Hilfe"
+    - "Ukraine NGO Deutschland"
+    - "Ukraine Think Tank"
+    - "Ukraine Forschung Deutschland"
+    - "Ukraine Kontakt Ansprechpartner"
+
+  cities:
+    - Berlin
+    - München
+    - Hamburg
+    - Köln
+    - Frankfurt
+    - Stuttgart
+    - Düsseldorf
+    - Leipzig
+    - Dresden
+    - Hannover

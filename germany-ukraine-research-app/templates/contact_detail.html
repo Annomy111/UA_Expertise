@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ contact.name }} - Germany-Ukraine Contact Research</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>🇺🇦 Germany-Ukraine Contact Research</h1>
+            <a href="/" class="btn btn-back">← Zurück zur Übersicht</a>
+        </div>
+    </header>
+
+    <main class="container">
+        <article class="contact-detail">
+            <div class="detail-header">
+                <h1>{{ contact.name }}</h1>
+                <span class="badge badge-{{ contact.type }}">{{ contact.type }}</span>
+            </div>
+
+            {% if contact.organization %}
+            <div class="detail-section">
+                <h3>Organisation</h3>
+                <p>{{ contact.organization }}</p>
+            </div>
+            {% endif %}
+
+            {% if contact.description %}
+            <div class="detail-section">
+                <h3>Beschreibung</h3>
+                <p>{{ contact.description }}</p>
+            </div>
+            {% endif %}
+
+            <div class="detail-section">
+                <h3>📞 Kontaktinformationen</h3>
+                <dl class="contact-details">
+                    {% if contact.email %}
+                    <dt>E-Mail:</dt>
+                    <dd><a href="mailto:{{ contact.email }}">{{ contact.email }}</a></dd>
+                    {% endif %}
+
+                    {% if contact.phone %}
+                    <dt>Telefon:</dt>
+                    <dd>{{ contact.phone }}</dd>
+                    {% endif %}
+
+                    {% if contact.website %}
+                    <dt>Website:</dt>
+                    <dd><a href="{{ contact.website }}" target="_blank">{{ contact.website }}</a></dd>
+                    {% endif %}
+
+                    {% if contact.address %}
+                    <dt>Adresse:</dt>
+                    <dd>{{ contact.address }}</dd>
+                    {% endif %}
+
+                    {% if contact.city %}
+                    <dt>Stadt:</dt>
+                    <dd>{{ contact.city }}</dd>
+                    {% endif %}
+
+                    {% if contact.postal_code %}
+                    <dt>PLZ:</dt>
+                    <dd>{{ contact.postal_code }}</dd>
+                    {% endif %}
+                </dl>
+            </div>
+
+            {% if contact.twitter or contact.linkedin or contact.facebook %}
+            <div class="detail-section">
+                <h3>🔗 Social Media</h3>
+                <div class="social-links">
+                    {% if contact.twitter %}
+                    <a href="{{ contact.twitter }}" target="_blank" class="btn btn-social">Twitter</a>
+                    {% endif %}
+                    {% if contact.linkedin %}
+                    <a href="{{ contact.linkedin }}" target="_blank" class="btn btn-social">LinkedIn</a>
+                    {% endif %}
+                    {% if contact.facebook %}
+                    <a href="{{ contact.facebook }}" target="_blank" class="btn btn-social">Facebook</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if contact.focus_areas %}
+            <div class="detail-section">
+                <h3>🎯 Schwerpunkte</h3>
+                <p>{{ contact.focus_areas }}</p>
+            </div>
+            {% endif %}
+
+            <div class="detail-section metadata">
+                <h3>ℹ️ Metadaten</h3>
+                <dl class="contact-details">
+                    {% if contact.source_url %}
+                    <dt>Quelle:</dt>
+                    <dd><a href="{{ contact.source_url }}" target="_blank">{{ contact.source_url }}</a></dd>
+                    {% endif %}
+
+                    {% if contact.last_updated %}
+                    <dt>Letzte Aktualisierung:</dt>
+                    <dd>{{ contact.last_updated }}</dd>
+                    {% endif %}
+
+                    {% if contact.verified %}
+                    <dt>Status:</dt>
+                    <dd><span class="badge badge-verified">✓ Verifiziert</span></dd>
+                    {% endif %}
+                </dl>
+            </div>
+        </article>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p><a href="/">← Zurück zur Übersicht</a></p>
+        </div>
+    </footer>
+</body>
+</html>
